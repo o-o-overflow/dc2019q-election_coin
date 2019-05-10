@@ -1,0 +1,9 @@
+[submodule "service/json"]
+	path = service/json
+	url = https://github.com/nlohmann/json.git
+[submodule "service/spdlog"]
+	path = service/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "service/pistache"]
+	path = service/pistache
+	url = https://github.com/oktal/pistache.git

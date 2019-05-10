@@ -1,0 +1,17 @@
+service_name: "election_coin"
+description: |
+  Coming soon to an ICO near you: ElectionCoin!  Cut to the chase and buy your way to victory.
+tags: [pwn, reverse]
+violates_flag_format: false
+allow_egress: false
+flag: "OOO{S0]\\/[3 v0t35 k()57 m0r3 TH4gn 0th3RZ}"
+type: normal
+concurrent_connections: 16
+authors: [nullptr]
+game_network_info:
+  host: election_coin.quals2019.oooverflow.io
+  port: 8888
+public_files:
+  - service/build/election_coin
+interactions:
+  - /app/test.sh

@@ -1,0 +1,25 @@
+{
+    "elections": [
+        {
+            "name": "dc2019",
+            "start_timestamp": 1557532800,
+            "duration": 48,
+            "races": {
+                "best_ctf_team": [
+                    {
+                        "name": "Team 1",
+                        "tally": 0.0
+                    },
+                    {
+                        "name": "Team 2",
+                        "tally": 0.0
+                    },
+                    {
+                        "name": "Team 3",
+                        "tally": 0.0
+                    }
+                ]
+            }
+        }
+    ]
+}

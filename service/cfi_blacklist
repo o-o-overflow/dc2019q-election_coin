@@ -1,0 +1,4 @@
+type:std::*
+type:spdlog::*
+type:nlohmann::*
+type:Pistache::*
