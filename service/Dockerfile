@@ -10,4 +10,6 @@ WORKDIR /build
 RUN cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ /src && make
 WORKDIR /
 RUN cp /build/election_coin /src/election_coin.json /src/flag / && rm -rf /src /build
+RUN groupadd -r election && useradd --no-log-init -r -g election election
+USER election
 CMD /election_coin

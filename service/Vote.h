@@ -9,9 +9,6 @@ using json = nlohmann::json;
 
 class Vote {
 public:
-    void convertCurrency(const std::vector<std::shared_ptr<Exchange>>& exchanges) {
-    }
-
     std::string candidate_;
     std::string currency_;
     float amount_;

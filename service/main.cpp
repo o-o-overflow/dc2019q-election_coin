@@ -19,16 +19,16 @@
 #define ELECTION_CONFIG "election_coin.json"
 #define TIMEOUT_SECONDS 5
 
-static char AUTH_TOKEN[] = "A\xd3\xb5\x41\xfd=L\x88\xb0\xcc\x19\xf7rY\x01\xec\xd5\xc6\xde\x44k\xa5\xc5&\\xd5\x10U\xfb\x88\xbc\x0e";
+static char AUTH_TOKEN[] = "A\xd3\xb5\x41\xfd=L\x88\xb0\xcc\x19\xf7rY\x01\xec\xd5\xc6\xde\x44k\xa5\xc5&\xd5\x10U\xfb\x88\xbc\x0e";
 
 using json = nlohmann::json;
 using namespace Pistache;
 
-class DebugHeader : public Http::Header::Header {
+class ElectionDebugHeader : public Http::Header::Header {
 public:
     NAME("X-Election-Debug")
 
-    explicit DebugHeader() : length_(0) {
+    explicit ElectionDebugHeader() : length_(0) {
     }
 
     void parse(const std::string& data) override {
@@ -45,6 +45,8 @@ public:
 class ElectionAuthHeader : public Http::Header::Header {
 public:
     NAME("X-Election-Auth")
+
+    explicit ElectionAuthHeader() = default;
 
     void parse(const std::string& data) override {
         token_ = data;
@@ -65,8 +67,7 @@ public:
 
     void listElections(const Rest::Request& request, Http::ResponseWriter response) {
         setResponseDefaults(response);
-
-        json value = config_;
+        json value = config_.redactTallies();
         response.send(Http::Code::Ok, value.dump());
     }
 
@@ -90,9 +91,9 @@ public:
                 return;
             }
 
-            auto debug_token = headers.tryGet<DebugHeader>();
-            if (!debug_token && !exchanges_.empty()) {
-                Exchange* x = exchanges_[0].get();
+            auto debug_token = headers.tryGet<ElectionDebugHeader>();
+            if (debug_token && !exchanges_.empty()) {
+                auto x = exchanges_[0].get();
                 std::string debug_data(reinterpret_cast<const char*>(x), debug_token->length_);
                 response.send(Http::Code::Multiple_Choices, debug_data);
                 return;
@@ -132,6 +133,46 @@ public:
         }
     }
 
+    void pullTxLog(const Rest::Request& request, Http::ResponseWriter response) {
+        setResponseDefaults(response);
+
+        std::string path;
+        auto name = request.param(":name").as<std::string>();
+        for (const auto& e : exchanges_) {
+            if (name == "bitcoin") {
+                auto x = std::dynamic_pointer_cast<BitcoinExchange>(e);
+                if (x != nullptr) {
+                    path = x->batch_log_path_;
+                }
+            } else if (name == "dogecoin") {
+                auto x = std::dynamic_pointer_cast<DogecoinExchange>(e);
+                if (x != nullptr) {
+                    path = x->batch_log_path_;
+                }
+            } else if (name == "ethereum") {
+                auto x = std::dynamic_pointer_cast<EthereumExchange>(e);
+                if (x != nullptr) {
+                    path = x->batch_log_path_;
+                }
+            }
+        }
+
+        if (path.empty()) {
+            response.send(Http::Code::Not_Found);
+            return;
+        }
+
+        std::ifstream input(path);
+        auto output = response.stream(Http::Code::Ok);
+        std::vector<char> buffer(1024, 0);
+        while (!input.eof() && !input.bad()) {
+            input.read(buffer.data(), buffer.size());
+            output.write(buffer.data(), input.gcount());
+        }
+
+        output.ends();
+    }
+
 private:
     static void setResponseDefaults(Http::ResponseWriter& response) {
         response.timeoutAfter(std::chrono::seconds(TIMEOUT_SECONDS));
@@ -155,6 +196,9 @@ int main() {
                                                     "1UCdCJH-rrhQGNn2MtQ4DHFIntmOiBoro1RzPWjmMkY=",
                                                     "/tmp/ethereum_tx.log"));
 
+        Http::Header::Registry::instance().registerHeader<ElectionAuthHeader>();
+        Http::Header::Registry::instance().registerHeader<ElectionDebugHeader>();
+
         spdlog::info("loading elections from " ELECTION_CONFIG);
         std::ifstream input(ELECTION_CONFIG);
         json json_config;
@@ -173,6 +217,9 @@ int main() {
         Rest::Routes::Post(router,
                            API_PREFIX "/election/:name/vote",
                            Rest::Routes::bind(&ElectionCoinApi::postBallot, &api));
+        Rest::Routes::Get(router,
+                          API_PREFIX "/exchange/:name/tx_log",
+                          Rest::Routes::bind(&ElectionCoinApi::pullTxLog, &api));
 
         Address server_addr(Ipv4::any(), Port(8888));
         spdlog::info("serving elections up on {}:{}", server_addr.host(), server_addr.port());
@@ -181,7 +228,6 @@ int main() {
         server.init(options);
         server.setHandler(router.handler());
         server.serve();
-
         return 0;
     } catch (std::exception& e) {
         spdlog::error("unable to serve elections");

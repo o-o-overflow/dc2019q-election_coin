@@ -9,6 +9,12 @@ using json = nlohmann::json;
 
 class Candidate {
 public:
+    Candidate redactTallies() {
+        auto redacted = *this;
+        redacted.tally_ = 0.0;
+        return redacted;
+    }
+
     void postVote(const Vote& vote) {
         if (name_ != vote.candidate_) {
             throw std::runtime_error("unknown candidate");
