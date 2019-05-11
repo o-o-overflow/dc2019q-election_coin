@@ -1,17 +1,14 @@
+#ifndef DC2019Q_ELECTION_COIN_VOTE_H
+#define DC2019Q_ELECTION_COIN_VOTE_H
+
 #include <nlohmann/json.hpp>
 
 #include "Exchange.h"
-
-#ifndef DC2019Q_ELECTION_COIN_VOTE_H
-#define DC2019Q_ELECTION_COIN_VOTE_H
 
 using json = nlohmann::json;
 
 class Vote {
 public:
-    void convertCurrency(const std::vector<std::shared_ptr<Exchange>>& exchanges) {
-    }
-
     std::string candidate_;
     std::string currency_;
     float amount_;

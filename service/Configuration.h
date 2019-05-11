@@ -1,13 +1,22 @@
+#ifndef DC2019Q_ELECTION_COIN_CONFIGURATION_H
+#define DC2019Q_ELECTION_COIN_CONFIGURATION_H
+
 #include <utility>
 #include <vector>
 
 #include "Election.h"
 
-#ifndef DC2019Q_ELECTION_COIN_CONFIGURATION_H
-#define DC2019Q_ELECTION_COIN_CONFIGURATION_H
-
 class Configuration {
 public:
+    Configuration redactTallies() {
+        Configuration redacted;
+        for (auto& e : elections_) {
+            redacted.elections_.emplace_back(e.redactTallies());
+        }
+
+        return redacted;
+    }
+
     std::vector<Election> elections_;
 };
 

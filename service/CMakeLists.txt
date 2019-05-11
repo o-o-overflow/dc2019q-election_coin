@@ -11,4 +11,5 @@ target_include_directories(election_coin PUBLIC
         ${CMAKE_SOURCE_DIR}/spdlog/include
         ${CMAKE_SOURCE_DIR}/json/include
         ${CMAKE_SOURCE_DIR}/pistache/include)
-target_link_libraries(election_coin PUBLIC pistache pthread)
+target_compile_options(election_coin PUBLIC "-fstack-protector-strong")
+target_link_libraries(election_coin PUBLIC pistache pthread "-Wl,-z,now")

@@ -6,7 +6,7 @@ violates_flag_format: false
 allow_egress: false
 flag: "OOO{S0]\\/[3 v0t35 k()57 m0r3 TH4gn 0th3RZ}"
 type: normal
-concurrent_connections: 16
+concurrent_connections: 64
 authors: [nullptr]
 game_network_info:
   host: election_coin.quals2019.oooverflow.io

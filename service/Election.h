@@ -1,3 +1,6 @@
+#ifndef DC2019Q_ELECTION_COIN_ELECTION_H
+#define DC2019Q_ELECTION_COIN_ELECTION_H
+
 #include <chrono>
 #include <string>
 #include <utility>
@@ -6,16 +9,23 @@
 #include "Ballot.h"
 #include "Candidate.h"
 
-#ifndef DC2019Q_ELECTION_COIN_ELECTION_H
-#define DC2019Q_ELECTION_COIN_ELECTION_H
-
 class Election {
 public:
-    void postBallot(const Ballot& ballot) {
-        if (name_ != ballot.election_) {
-            throw std::runtime_error("election name mismatch");
+    Election redactTallies() {
+        auto redacted = *this;
+        for (auto& r_it : redacted.races_) {
+            std::vector<Candidate> candidates;
+            for (auto& c_it : r_it.second) {
+                candidates.emplace_back(c_it.redactTallies());
+            }
+
+            r_it.second = candidates;
         }
 
+        return redacted;
+    }
+
+    void postBallot(const Ballot& ballot) {
         for (const auto& v_it : ballot.votes_) {
             auto r_it = races_.find(v_it.first);
             if (r_it == std::end(races_)) {
@@ -46,7 +56,9 @@ void to_json(json& value, const Election& election) {
     value = json{
             {"name",            election.name_},
             {"races",           election.races_},
-            {"start_timestamp", election.start_timestamp_.time_since_epoch().count()},
+            {"start_timestamp", std::chrono::duration_cast<std::chrono::seconds>(election.start_timestamp_
+                                                                                         .time_since_epoch())
+                                        .count()},
             {"duration",        election.duration_.count()},
     };
 }
